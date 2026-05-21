@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/styles.css?v=3">
+    <title>QR Code Scanner</title>
+</head>
+<body class="page">
+    <header class="header">
+        <div class="container">
+            <h1>QR Code Scanner</h1>
+        </div>
+    </header>
+    <main class="container content">
+        <div class="qr-code">
+            <img src="/static/images/2dbarcode.jpg" alt="QR Code">
+            <video id="video" playsinline muted>Camera Preview </video>
+            <button id="button">Start Scanner</button>
+
+            <!-- Hidden by default; scanner.js shows it via showError(). -->
+            <div id="status" style="display:none;"></div>
+
+            <h5>Url Link:</h5>
+            <div id="decoded-output" class="decoded-output" aria-live="polite">
+                <p id="resultPlaceholder" class="decoded-output__placeholder">No result yet</p>
+                <a id="resultLink" class="decoded-output__link" href="#" target="_blank" rel="noopener noreferrer" hidden></a>
+                <div id="resultText" class="decoded-output__text" hidden></div>
+            </div>
+
+        </div>
+    </main>
+    <footer class="footer">
+        <div class="container">
+            <p>Made by: ondina-her</p>
+        </div>
+    </footer>
+
+    <script src="/static/js/jsQR.js"></script>
+
+    <script src="/static/js/scanner.js">  </script>
+</body>
+</html>
