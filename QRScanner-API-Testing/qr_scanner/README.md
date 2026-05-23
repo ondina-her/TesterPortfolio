@@ -60,9 +60,20 @@ pytest Test/ -v
 
 - Decoded text will appear in the result box.
 
-
 # Postman Tests
-Import `qr_code_scann.postman_collection.json` into Postman to run API tests.
+This project includes a Postman collection (`qr_code_scann.postman_collection.json`) with organized folders:
+
+- **Collection** → Main API requests for `/items/`, `/scans/`, `/tokens/`
+- **Error cases** → Invalid paths and missing data (422, 404 responses)
+- **Negative cases** → Wrong relationships, empty strings, invalid inputs
+
+### How to use
+1. Open Postman.
+2. Import `qr_code_scann.postman_collection.json`.
+3. Run requests inside each folder:
+   - **Collection** → Happy path CRUD operations.
+   - **Error cases** → Verify error handling.
+   - **Negative cases** → Test invalid inputs and relationships.
 
 
 ## 📜 License
