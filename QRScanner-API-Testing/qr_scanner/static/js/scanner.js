@@ -1,6 +1,6 @@
 // scanner.js
 // Scans a QR code from the device camera using the jsQR library,
-// then /items/ the decoded text to the FastAPI backend at /items/.
+// then posts the decoded data to the FastAPI backend at /scan_and_link/.
 
 // Grab the page elements that the JS needs to interact with.
 // These IDs must match the elements in templates/index.html.
@@ -41,6 +41,10 @@ function setVisible(el, visible) {
 
 /** Shows a clickable link for http/https URLs; plain text otherwise. */
 function renderDecoded(decodedText) {
+  if (!decodedText) {
+    showError("No decoded text received.");
+    return;
+  }
   const text = decodedText.trim();
   setVisible(resultPlaceholder, false);
 
@@ -57,54 +61,49 @@ function renderDecoded(decodedText) {
   setVisible(resultLink, false);
 }
 
-// Save scan event, item, and linking token (three API calls in order).
+/** 
+ * Save scan event and item data using the unified 2-table backend structure.
+ * Automatically attempts to extract an optional token parameter if the QR is a URL.
+ */
 async function postResult(decodedText) {
   const headers = { "Content-Type": "application/json" };
+  
+  // Smart Token Extraction: 
+  // If the QR text is a URL containing a '?token=value' or '&token=value' parameter,
+  // we extract it to send it to our new optional token database field.
+  let extractedToken = null;
+  try {
+    if (decodedText.startsWith("http://") || decodedText.startsWith("https://")) {
+      const urlParams = new URL(decodedText).searchParams;
+      extractedToken = urlParams.get("token"); // Will be null if parameter does not exist
+    }
+  } catch (e) {
+    console.log("Not a standard URL, skipping token URL extraction.");
+  }
 
   try {
-    // 1) Scan — record that the camera read this QR
-    const scanRes = await fetch("/scans/", {
+    // Send request using the optimized ScanCreate schema format
+    const res = await fetch("/scan_and_link/", {
       method: "POST",
       headers,
-      body: JSON.stringify({ text: decodedText, source: "camera" }),
-    });
-    if (!scanRes.ok) {
-      const errorData = await scanRes.json().catch(() => ({}));
-      showError("Scan error: " + (errorData.detail || scanRes.status));
-      return;
-    }
-    const scan = await scanRes.json();
-
-    // 2) Item — save decoded text (same as before)
-    const itemRes = await fetch("/items/", {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ name: decodedText }),
-    });
-    if (!itemRes.ok) {
-      const errorData = await itemRes.json().catch(() => ({}));
-      showError("Item error: " + (errorData.detail || itemRes.status));
-      return;
-    }
-    const item = await itemRes.json();
-
-    // 3) Token — link this scan to this item
-    const tokenRes = await fetch("/tokens/", {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        text: decodedText,
-        source: "scanner",
-        date: new Date().toISOString().slice(0, 19),
-        item_id: item.id,
-        scan_id: scan.id,
+      body: JSON.stringify({ 
+        text: decodedText, 
+        source: "camera",
+        token: extractedToken // Sends the string or null seamlessly
       }),
     });
-    if (!tokenRes.ok) {
-      const errorData = await tokenRes.json().catch(() => ({}));
-      showError("Token error: " + (errorData.detail || tokenRes.status));
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      showError("Scan+Link error: " + (errorData.detail || res.status));
       return;
     }
+
+    const data = await res.json();
+    console.log("Scan log and Item successfully synchronized:", data);
+
+    // FIX: Render using data.item.name since scan.text no longer exists in the 2-table model
+    renderDecoded(data.item.name);
   } catch (err) {
     showError("Failed to connect to server: " + err);
   }
