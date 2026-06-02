@@ -7,7 +7,7 @@ from . import models, schemas
 # ITEM OPERATIONS
 # ==========================================
 
-def create_item(db: Session, item: schemas.ItemBase):
+def create_item(db: Session, item: schemas.Item):
     """
     Checks if an item with the given QR name/text already exists.
     If it exists, it returns it; otherwise, creates a new one.

@@ -102,7 +102,6 @@ async function postResult(decodedText) {
     const data = await res.json();
     console.log("Scan log and Item successfully synchronized:", data);
 
-    // FIX: Render using data.item.name since scan.text no longer exists in the 2-table model
     renderDecoded(data.item.name);
   } catch (err) {
     showError("Failed to connect to server: " + err);

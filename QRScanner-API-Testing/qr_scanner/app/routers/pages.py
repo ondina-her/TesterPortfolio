@@ -17,8 +17,8 @@ class ScanAndLinkResponse(BaseModel):
     Optimized unified response model representing a single scan event
     and its main parent item. Token metadata now lives inside the scan field.
     """
-    scan: schemas.ScanBase
-    item: schemas.ItemBase
+    scan: schemas.Scan
+    item: schemas.Item
 
     class Config:
         from_attributes = True
@@ -45,8 +45,8 @@ def get_latest_scan(db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Parent item for this scan is missing")
     
     return ScanAndLinkResponse(
-        scan=schemas.ScanBase.model_validate(latest_scan),
-        item=schemas.ItemBase.model_validate(item)
+        scan=schemas.Scan.model_validate(latest_scan),
+        item=schemas.Item.model_validate(item)
     )
 
 
@@ -58,7 +58,7 @@ def scan_and_link(scan_data: schemas.ScanCreate, db: Session = Depends(get_db)):
     then logs the Scan event linking it to that item with its optional token.
     """
     # 1. Process or fetch the Item entity (verifies unique name constraint automatically)
-    db_item = crud.create_item(db=db, item=schemas.ItemBase(name=scan_data.text, description=None))
+    db_item = crud.create_item(db=db, item=schemas.Item(name=scan_data.text, description=None))
     
     # 2. Log the physical Scan event directly linked to the Item ID
     db_scan = crud.create_scan(
@@ -69,8 +69,8 @@ def scan_and_link(scan_data: schemas.ScanCreate, db: Session = Depends(get_db)):
     )
 
     return ScanAndLinkResponse(
-        scan=schemas.ScanBase.model_validate(db_scan),
-        item=schemas.ItemBase.model_validate(db_item)
+        scan=schemas.Scan.model_validate(db_scan),
+        item=schemas.Item.model_validate(db_item)
     )
 
 
@@ -111,8 +111,8 @@ def read_scan(scan_id: int, db: Session = Depends(get_db)):
     return db_scan
 
 
-@router.post("/items/", status_code=201, response_model=schemas.ItemBase)
-def create_item(item: schemas.ItemBase, db: Session = Depends(get_db)):
+@router.post("/items/", status_code=201, response_model=schemas.Item)
+def create_item(item: schemas.Item, db: Session = Depends(get_db)):
     """Standalone endpoint to register new unique items manually into the database."""
     return crud.create_item(db=db, item=item)
 

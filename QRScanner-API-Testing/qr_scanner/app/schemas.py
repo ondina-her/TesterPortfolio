@@ -5,7 +5,7 @@ from datetime import datetime
 # BASE SCHEMAS (Data structures without relationships)
 # ==========================================
 
-class ItemBase(BaseModel):
+class Item(BaseModel):
     """
     Base schema for Item, containing core attributes.
     Used for reading or representing an Item entity.
@@ -18,7 +18,7 @@ class ItemBase(BaseModel):
         from_attributes = True
 
 
-class ScanBase(BaseModel):
+class Scan(BaseModel):
     """
     Base schema for a Scan event.
     Reflects the simplified database structure where Token is now an optional field.
@@ -50,35 +50,25 @@ class ScanCreate(BaseModel):
 # RELATIONAL SCHEMAS (Nested structures for API responses)
 # ==========================================
 
-class ScanWithItem(ScanBase):
+class ScanWithItem(Scan):
     """
     Response schema when retrieving a Scan, automatically embedding its linked Item.
     """
     item_id: int
-    item: ItemBase
+    item: Item
 
     class Config:
         from_attributes = True
 
 
-class ItemWithScans(ItemBase):
+class ItemWithScans(Item):
     """
     Response schema when retrieving an Item, listing all its historical scan events.
     """
-    scans: list[ScanBase] = []
+    scans: list[Scan] = []
 
     class Config:
         from_attributes = True
 
 
-# ==========================================
-# BACKWARD COMPATIBILITY ALIASES
-# ==========================================
 
-class Item(ItemBase):
-    """Alias for basic Item operations to avoid breaking existing service references."""
-    pass
-
-class Scan(ScanBase):
-    """Alias for basic Scan operations to avoid breaking existing service references."""
-    pass
